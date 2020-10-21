@@ -1,0 +1,47 @@
+#!/bin/sh
+
+AUTH=''
+
+USER='quasi-category'
+
+ls_versions() {
+    base_url=$1
+    curl -s -u "$AUTH" "$base_url/maven-metadata.xml" | xq -r '.metadata.versioning.versions.version[]'
+}
+
+dl() {
+    local repo=$1
+    local scalaver=$2
+    local package_name=${repo}_${scalaver}
+    local base_folder=com/github/quasi-category/$package_name
+    local base_url="https://maven.pkg.github.com/$USER/$repo/$base_folder"
+    local base_file=''
+    local local_file=''
+
+    # curl -u "$AUTH" "$base_url/maven-metadata.xml"
+    for ver in `ls_versions "$base_url"`; do
+        echo $package_name $ver
+        url_base=$base_url/$ver/$package_name-$ver
+        mkdir -p maven2/$base_folder/$ver
+        local_file="maven2/$base_folder/$ver/$package_name-$ver"
+
+        curl -s -L -u "$AUTH" -o "$local_file.pom" "$url_base.pom"
+        curl -s -L -u "$AUTH" -o "$local_file.pom.md5" "$url_base.pom.md5"
+        curl -s -L -u "$AUTH" -o "$local_file.pom.sha1" "$url_base.pom.sha1"
+        curl -s -L -u "$AUTH" -o "$local_file.jar" "$url_base.jar"
+        curl -s -L -u "$AUTH" -o "$local_file.jar.md5" "$url_base.jar.md5"
+        curl -s -L -u "$AUTH" -o "$local_file.jar.sha1" "$url_base.jar.sha1"
+
+        curl -s -L -u "$AUTH" -o "$local_file-sources.jar" "$url_base-sources.jar"
+        curl -s -L -u "$AUTH" -o "$local_file-sources.jar.md5" "$url_base-sources.jar.md5"
+        curl -s -L -u "$AUTH" -o "$local_file-sources.jar.sha1" "$url_base-sources.jar.sha1"
+        curl -s -L -u "$AUTH" -o "$local_file-javadoc.jar" "$url_base-javadoc.jar"
+        curl -s -L -u "$AUTH" -o "$local_file-javadoc.jar.md5" "$url_base-javadoc.jar.md5"
+        curl -s -L -u "$AUTH" -o "$local_file-javadoc.jar.sha1" "$url_base-javadoc.jar.sha1"
+    done
+}
+
+dl 'cats-effect-interop-twitter' '2.12'
+dl 'cats-effect-interop-twitter' '2.13'
+dl 'doobie-agroal' '2.12'
+dl 'doobie-agroal' '2.13'
